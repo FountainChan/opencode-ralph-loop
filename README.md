@@ -2,9 +2,13 @@
 
 A lightweight [OpenCode](https://opencode.ai) plugin that implements the [Ralph Loop](https://ghuntley.com/ralph/) pattern — a self-referential completion loop that keeps your AI agent working until a task is truly 100% done.
 
-Inspired by the Ralph Loop feature in [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode), reimplemented as a standalone plugin with zero dependencies.
+Also includes **ebuilder agent** support — switch to the ebuilder agent and auto-continuation activates automatically, no commands needed.
+
+Inspired by the Ralph Loop and Sisyphus features in [oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode), reimplemented as a standalone plugin with zero dependencies.
 
 ## How It Works
+
+### Ralph Loop (command-based)
 
 ```
 User issues /ralph-loop or /ulw-loop command
@@ -17,11 +21,26 @@ User issues /ralph-loop or /ulw-loop command
     → Repeat until completion or max iterations
 ```
 
+### ebuilder Agent (automatic)
+
+```
+User switches to ebuilder agent in TUI
+  → chat.message hook detects agent === "ebuilder"
+  → Plugin writes loop state to .ebuilder.state.json
+  → Agent executes the task
+  → session.idle event fires
+  → Plugin checks Agent output for <promise>DONE</promise>
+    → Found: Loop complete!
+    → Not found: Inject continuation prompt → Agent continues
+  → User switches back to build/plan → ebuilder state auto-cleared → Loop stops
+```
+
 ## Features
 
 - **`/ralph-loop`** — Standard completion loop (max 100 iterations)
 - **`/ulw-loop`** — Ultrawork mode with maximum intensity (max 500 iterations)
-- **`/cancel-ralph`** — Cancel an active loop
+- **`/cancel-ralph`** — Cancel an active loop (works for both ralph-loop and ebuilder)
+- **ebuilder agent** — Auto-continuation when switched to ebuilder agent (max 500 iterations)
 - **Completion promise detection** — Scans Agent output for `<promise>DONE</promise>`
 - **Toast notifications** — Real-time iteration and completion updates
 - **In-flight protection** — Prevents duplicate idle event handling
@@ -40,7 +59,16 @@ Then add to your `opencode.json`:
 
 ```json
 {
-  "plugin": ["./plugins/ralph-loop.js"]
+  "plugin": ["./plugins/ralph-loop.js"],
+  "agent": {
+    "ebuilder": {
+      "mode": "primary",
+      "description": "Autonomous agent with auto-continuation. Switch to this agent for tasks that need to run without stopping.",
+      "prompt": "You are ebuilder, an autonomous coding agent that works continuously without stopping.\n\nRULES:\n- Work continuously until the task is FULLY complete\n- When you need to use a skill, invoke it directly (e.g., /ce:brainstorm, /ce:plan, /ce:work)\n- Do NOT ask the user for permission to continue — just keep working\n- Do NOT pause to summarize or wait for confirmation\n- When you encounter errors, fix them yourself and keep going\n- When the ENTIRE task is FULLY complete and verified, output: <promise>DONE</promise>\n- Do NOT output the promise until everything is truly done\n- Output the promise ONLY ONCE when truly done",
+      "color": "#FF6600",
+      "steps": 200
+    }
+  }
 }
 ```
 
@@ -53,6 +81,15 @@ cp ralph-loop.js .opencode/plugins/ralph-loop.js
 ```
 
 ## Usage
+
+### ebuilder Agent (recommended for long tasks)
+
+1. Switch to the **ebuilder** agent in the TUI (Tab key or agent selector)
+2. Type your task normally
+3. The agent will work continuously without stopping
+4. Switch back to **build** to stop auto-continuation
+
+### Ralph Loop Commands
 
 ```bash
 # Start a standard loop
@@ -80,7 +117,7 @@ The plugin detects this tag in the Agent's response and stops the loop. You can 
 
 ## Configuration
 
-No configuration file needed. The loop state is stored in `.ralph-loop.state.json` in the project directory and automatically cleaned up when the loop completes or is cancelled.
+No configuration file needed. Loop states are stored in `.ralph-loop.state.json` and `.ebuilder.state.json` in the project directory and automatically cleaned up when loops complete or are cancelled.
 
 ## Comparison with oh-my-opencode
 
@@ -95,6 +132,8 @@ No configuration file needed. The loop state is stored in `.ralph-loop.state.jso
 | `/ralph-loop` | ✅ | ✅ |
 | `/ulw-loop` | ✅ | ✅ |
 | `/cancel-ralph` | ✅ | ✅ |
+| ebuilder/Sisyphus agent | ✅ (Sisyphus) | ✅ (ebuilder) |
+| Auto-continuation on agent switch | ✅ | ✅ |
 | Toast notifications | ✅ | ✅ |
 | Custom max iterations | ✅ | ✅ |
 | Custom completion promise | ✅ | ✅ |
