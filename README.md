@@ -125,6 +125,8 @@ Add to your `opencode.json`:
 ```
 
 > 💡 **How it works**: OpenCode loads npm plugins from `~/.cache/opencode/node_modules/`. By placing a properly structured package directory there, OpenCode treats it as an installed npm package — showing a clean name instead of a file path. No actual npm publish needed.
+>
+> 📦 **Auto packaging**: Every time a new `v*` tag is pushed, GitHub Actions automatically packages the plugin and creates a Release with the tarball attached. Just run `git tag v1.0.0 && git push --tags` to trigger it.
 
 ---
 

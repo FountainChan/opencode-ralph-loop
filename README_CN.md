@@ -124,6 +124,8 @@ tar xzf ralph-loop-1.0.0.tar.gz -C ~/.cache/opencode/node_modules/
 ```
 
 > 💡 **原理**：OpenCode 从 `~/.cache/opencode/node_modules/` 加载 npm 插件。将一个结构正确的 npm 包目录放在那里，OpenCode 就会把它当作已安装的 npm 包——显示干净的名字。无需真正发布到 npm。
+>
+> 📦 **自动打包**：每次推送 `v*` 格式的 tag，GitHub Actions 会自动打包插件并创建 Release 附上 tarball。只需运行 `git tag v1.0.0 && git push --tags` 即可触发。
 
 ---
 

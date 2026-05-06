@@ -1,22 +1,22 @@
 name: Package Release
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
 
 jobs:
-  package:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Build package tarball
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          VERSION="${VERSION#v}"
+          VERSION="${GITHUB_REF_NAME#v}"
           mkdir -p /tmp/ralph-loop/src
           cp src/index.js /tmp/ralph-loop/src/
           cp package.json /tmp/ralph-loop/
@@ -24,12 +24,13 @@ jobs:
           cp LICENSE /tmp/ralph-loop/ 2>/dev/null || true
           tar czf "ralph-loop-${VERSION}.tar.gz" -C /tmp ralph-loop
 
-      - name: Upload release asset
+      - name: Create release and upload asset
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          VERSION="${VERSION#v}"
-          gh release upload "${{ github.event.release.tag_name }}" \
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
             "ralph-loop-${VERSION}.tar.gz" \
-            --repo "${{ github.repository }}"
+            --repo "${{ github.repository }}" \
+            --title "v${VERSION}" \
+            --generate-notes
