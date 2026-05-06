@@ -136,6 +136,7 @@ export default async function ralphLoopPlugin({ client, directory }) {
   const inFlight = new Set();
 
   return {
+    name: "ralph-loop",
     config: async (inputConfig) => {
       const existing = inputConfig.command || {};
       inputConfig.command = {
