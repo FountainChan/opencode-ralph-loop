@@ -102,6 +102,30 @@ mkdir -p .opencode/plugins
 cp src/index.js .opencode/plugins/ralph-loop.js
 ```
 
+### Option 4: Manual cache install (no npm publish)
+
+Download the packaged plugin from [GitHub Releases](https://github.com/FountainChan/opencode-ralph-loop/releases), then extract it directly into OpenCode's npm cache:
+
+```bash
+# 1. Download the tarball from GitHub Releases (e.g. ralph-loop-1.0.0.tar.gz)
+
+# 2. Extract to OpenCode's npm cache directory
+mkdir -p ~/.cache/opencode/node_modules
+tar xzf ralph-loop-1.0.0.tar.gz -C ~/.cache/opencode/node_modules/
+
+# 3. Add to opencode.json
+```
+
+Add to your `opencode.json`:
+
+```json
+{
+  "plugin": ["ralph-loop"]
+}
+```
+
+> 💡 **How it works**: OpenCode loads npm plugins from `~/.cache/opencode/node_modules/`. By placing a properly structured package directory there, OpenCode treats it as an installed npm package — showing a clean name instead of a file path. No actual npm publish needed.
+
 ---
 
 ## 🎮 Usage

@@ -101,6 +101,30 @@ mkdir -p .opencode/plugins
 cp src/index.js .opencode/plugins/ralph-loop.js
 ```
 
+### 方式四：手动缓存安装（无需发布 npm）
+
+从 [GitHub Releases](https://github.com/FountainChan/opencode-ralph-loop/releases) 下载打包好的插件，直接解压到 OpenCode 的 npm 缓存目录：
+
+```bash
+# 1. 从 GitHub Releases 下载 tarball（如 ralph-loop-1.0.0.tar.gz）
+
+# 2. 解压到 OpenCode 的 npm 缓存目录
+mkdir -p ~/.cache/opencode/node_modules
+tar xzf ralph-loop-1.0.0.tar.gz -C ~/.cache/opencode/node_modules/
+
+# 3. 在 opencode.json 中添加配置
+```
+
+在 `opencode.json` 中添加：
+
+```json
+{
+  "plugin": ["ralph-loop"]
+}
+```
+
+> 💡 **原理**：OpenCode 从 `~/.cache/opencode/node_modules/` 加载 npm 插件。将一个结构正确的 npm 包目录放在那里，OpenCode 就会把它当作已安装的 npm 包——显示干净的名字。无需真正发布到 npm。
+
 ---
 
 ## 🎮 使用方法
