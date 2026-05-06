@@ -1,0 +1,16 @@
+{
+  "name": "ralph-loop",
+  "version": "1.0.0",
+  "description": "Self-referential development loop for OpenCode — auto-continuation until completion promise",
+  "main": "src/index.js",
+  "exports": {
+    ".": {
+      "import": "./src/index.js"
+    }
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": ">=1.0.0"
+  },
+  "keywords": ["opencode", "plugin", "ralph-loop", "automation", "loop"],
+  "license": "MIT"
+}
