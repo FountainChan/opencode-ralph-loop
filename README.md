@@ -110,6 +110,39 @@ npm install FountainChan/opencode-ralph-loop
 }
 ```
 
+## 🗂️ 项目结构
+
+```
+opencode-ralph-loop/
+├── src/
+│   └── index.js        # 插件入口
+├── scripts/
+│   └── cleanup.py      # 清理脚本（卸载前执行）
+├── package.json
+├── README.md
+└── .gitignore
+```
+
+## 🧹 卸载
+
+在删除插件前，执行清理脚本以移除残留的命令条目：
+
+```bash
+# 1. 预览要清理的内容
+python scripts/cleanup.py --source ralph-loop --dry-run
+
+# 2. 执行清理
+python scripts/cleanup.py --source ralph-loop
+
+# 3. 卸载 npm 包
+cd ~/.cache/opencode
+npm uninstall ralph-loop
+
+# 4. 从 opencode.json 的 plugin 数组中移除 "ralph-loop"
+```
+
+> 💡 `--dry-run` 可以先预览效果，确认无误后再实际执行。
+
 ---
 
 ## 🎮 Usage
