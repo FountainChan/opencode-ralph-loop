@@ -56,11 +56,39 @@ User switches to ebuilder agent in TUI
 
 ---
 
-## 📦 Installation
+## 📦 安装
 
-### Option 1: npm (recommended)
+### 方式一：本地路径安装（推荐，开发用）
 
-Add to your `opencode.json`:
+```bash
+cd ~/.cache/opencode
+npm install /path/to/ralph-loop
+```
+
+> 💡 这会创建符号链接，修改源码后无需重新安装，改动实时生效。
+
+### 方式二：GitHub 仓库安装
+
+```bash
+cd ~/.cache/opencode
+npm install FountainChan/opencode-ralph-loop
+```
+
+### 方式三：直接文件路径（备选）
+
+如果 npm 方式有问题，可直接在 `opencode.json` 的 `plugin` 字段引用 JS 文件路径：
+
+```json
+{
+  "plugin": [
+    "file:///path/to/ralph-loop/src/index.js"
+  ]
+}
+```
+
+### 配置
+
+在 `~/.config/opencode/opencode.json` 中添加插件：
 
 ```json
 {
@@ -68,65 +96,19 @@ Add to your `opencode.json`:
 }
 ```
 
-OpenCode installs the plugin automatically at startup via Bun.
-
-### Option 2: Global (copy to plugins directory)
-
-```bash
-# Copy the plugin file
-cp src/index.js ~/.config/opencode/plugins/ralph-loop.js
-```
-
-Then add to your `opencode.json`:
+如果需要使用 ebuilder agent（自动续写），额外添加 agent 配置：
 
 ```json
 {
-  "plugin": ["./plugins/ralph-loop.js"],
   "agent": {
     "ebuilder": {
       "mode": "primary",
-      "description": "Autonomous agent with auto-continuation. Switch to this agent for tasks that need to run without stopping.",
-      "prompt": "You are ebuilder, an autonomous coding agent that works continuously without stopping.\n\nRULES:\n- Work continuously until the task is FULLY complete\n- When you need to use a skill, invoke it directly (e.g., /ce:brainstorm, /ce:plan, /ce:work)\n- Do NOT ask the user for permission to continue — just keep working\n- Do NOT pause to summarize or wait for confirmation\n- When you encounter errors, fix them yourself and keep going\n- When the ENTIRE task is FULLY complete and verified, output: <promise>DONE</promise>\n- Do NOT output the promise until everything is truly done\n- Output the promise ONLY ONCE when truly done",
-      "color": "#FF6600",
-      "steps": 200
+      "description": "Autonomous agent with auto-continuation.",
+      "prompt": "You are ebuilder..."
     }
   }
 }
 ```
-
-### Option 3: Project-level
-
-```bash
-# Copy to your project's .opencode/plugins/ directory
-mkdir -p .opencode/plugins
-cp src/index.js .opencode/plugins/ralph-loop.js
-```
-
-### Option 4: Manual cache install (no npm publish)
-
-Download the packaged plugin from [GitHub Releases](https://github.com/FountainChan/opencode-ralph-loop/releases), then extract it directly into OpenCode's npm cache:
-
-```bash
-# 1. Download the tarball from GitHub Releases (e.g. ralph-loop-1.0.0.tar.gz)
-
-# 2. Extract to OpenCode's npm cache directory
-mkdir -p ~/.cache/opencode/node_modules
-tar xzf ralph-loop-1.0.0.tar.gz -C ~/.cache/opencode/node_modules/
-
-# 3. Add to opencode.json
-```
-
-Add to your `opencode.json`:
-
-```json
-{
-  "plugin": ["ralph-loop"]
-}
-```
-
-> 💡 **How it works**: OpenCode loads npm plugins from `~/.cache/opencode/node_modules/`. By placing a properly structured package directory there, OpenCode treats it as an installed npm package — showing a clean name instead of a file path. No actual npm publish needed.
->
-> 📦 **Auto packaging**: Every time a new `v*` tag is pushed, GitHub Actions automatically packages the plugin and creates a Release with the tarball attached. Just run `git tag v1.0.0 && git push --tags` to trigger it.
 
 ---
 

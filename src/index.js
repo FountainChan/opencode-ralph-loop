@@ -10,6 +10,93 @@ const EBUILDER_MAX_ITERATIONS = 500;
 const DEFAULT_COMPLETION_PROMISE = "DONE";
 const COMPLETION_TAG_PATTERN = /<promise>\s*(.*?)\s*<\/promise>/is;
 
+// ─── Commands definitions ──────────────────────────────────────────
+
+function getCommands() {
+  return {
+    "ralph-loop": {
+      description: "(ralph-loop) Start self-referential development loop until completion",
+      template: `<command-instruction>
+You are now in RALPH LOOP mode. Work on the task until it is FULLY complete.
+
+RULES:
+- Work continuously until every part of the task is done
+- When FULLY complete, output: <promise>DONE</promise>
+- Do NOT output the promise until everything is verified
+- Do NOT stop early or take shortcuts
+- Output the promise ONLY ONCE when truly done
+</command-instruction>
+
+<user-task>
+$ARGUMENTS
+</user-task>`,
+      argumentHint: '"task description" [--completion-promise=TEXT] [--max-iterations=N]',
+    },
+    "ulw-loop": {
+      description: "(ralph-loop) Start ultrawork loop - maximum intensity until completion",
+      template: `<command-instruction>
+You are now in ULTRAWORK LOOP mode. Work at MAXIMUM intensity until the task is FULLY complete.
+
+RULES:
+- Work continuously at maximum effort
+- Use parallel agents aggressively for exploration
+- Deep-analyze before implementing
+- When FULLY complete, output: <promise>DONE</promise>
+- Do NOT output the promise until everything is verified
+- Do NOT stop early or take shortcuts
+- Output the promise ONLY ONCE when truly done
+</command-instruction>
+
+<user-task>
+$ARGUMENTS
+</user-task>`,
+      argumentHint: '"task description" [--completion-promise=TEXT] [--max-iterations=N]',
+    },
+    "cancel-ralph": {
+      description: "(ralph-loop) Cancel active Ralph Loop or ebuilder Loop",
+      template: `<command-instruction>
+Cancel the active Ralph Loop or ebuilder Loop. Clear the loop state and stop injecting continuations.
+Output: Loop cancelled.
+</command-instruction>`,
+    },
+  };
+}
+
+// ─── Config file sync ──────────────────────────────────────────────
+
+function syncCommandsToFile(configDir) {
+  const commands = getCommands();
+  const configFilePath = path.join(configDir, 'opencode.json');
+
+  try {
+    let parsed = {};
+    try {
+      const raw = fs.readFileSync(configFilePath, 'utf-8');
+      parsed = JSON.parse(raw);
+    } catch {}
+
+    const existing = parsed.command || {};
+
+    // Remove stale ralph-loop entries
+    for (const key of Object.keys(existing)) {
+      if (existing[key]?.__cc_source === 'ralph-loop') {
+        delete existing[key];
+      }
+    }
+
+    // Add fresh commands
+    for (const [name, def] of Object.entries(commands)) {
+      existing[name] = { ...def, __cc_source: 'ralph-loop' };
+    }
+
+    parsed.command = existing;
+    fs.writeFileSync(configFilePath, JSON.stringify(parsed, null, 2), 'utf-8');
+    console.log(`[ralph-loop] Synced ${Object.keys(commands).length} commands to opencode.json`);
+  } catch (e) {
+    console.error(`[ralph-loop] Failed to sync commands:`, e.message);
+  }
+}
+
 function getStateFilePath(dir, file) {
   return path.join(dir, file);
 }
@@ -135,60 +222,20 @@ async function showToast(client, title, message, variant, duration) {
 export default async function ralphLoopPlugin({ client, directory }) {
   const inFlight = new Set();
 
+  // ── Sync commands to opencode.json for Desktop UI autocomplete ──
+  const configDir = path.join(os.homedir(), '.config', 'opencode');
+  try {
+    syncCommandsToFile(configDir);
+  } catch {}
+
+  // ── Build command registry ──
+  const commands = getCommands();
+
   return {
     name: "ralph-loop",
     config: async (inputConfig) => {
       const existing = inputConfig.command || {};
-      inputConfig.command = {
-        ...existing,
-        "ralph-loop": {
-          description:
-            "(ralph-loop) Start self-referential development loop until completion",
-          template: `<command-instruction>
-You are now in RALPH LOOP mode. Work on the task until it is FULLY complete.
-
-RULES:
-- Work continuously until every part of the task is done
-- When FULLY complete, output: <promise>DONE</promise>
-- Do NOT output the promise until everything is verified
-- Do NOT stop early or take shortcuts
-- Output the promise ONLY ONCE when truly done
-</command-instruction>
-
-<user-task>
-$ARGUMENTS
-</user-task>`,
-          argumentHint: '"task description" [--completion-promise=TEXT] [--max-iterations=N]',
-        },
-        "ulw-loop": {
-          description:
-            "(ralph-loop) Start ultrawork loop - maximum intensity until completion",
-          template: `<command-instruction>
-You are now in ULTRAWORK LOOP mode. Work at MAXIMUM intensity until the task is FULLY complete.
-
-RULES:
-- Work continuously at maximum effort
-- Use parallel agents aggressively for exploration
-- Deep-analyze before implementing
-- When FULLY complete, output: <promise>DONE</promise>
-- Do NOT output the promise until everything is verified
-- Do NOT stop early or take shortcuts
-- Output the promise ONLY ONCE when truly done
-</command-instruction>
-
-<user-task>
-$ARGUMENTS
-</user-task>`,
-          argumentHint: '"task description" [--completion-promise=TEXT] [--max-iterations=N]',
-        },
-        "cancel-ralph": {
-          description: "(ralph-loop) Cancel active Ralph Loop or ebuilder Loop",
-          template: `<command-instruction>
-Cancel the active Ralph Loop or ebuilder Loop. Clear the loop state and stop injecting continuations.
-Output: Loop cancelled.
-</command-instruction>`,
-        },
-      };
+      inputConfig.command = { ...existing, ...commands };
     },
 
     "chat.message": async (input, output) => {
